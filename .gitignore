@@ -1,0 +1,5 @@
+# Local & Node / Python ignores
+__pycache__/
+*.pyc
+.DS_Store
+.env

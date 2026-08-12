@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Chaining Summarizer | Multi-Step Pipeline Lab</title>
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="min-h-screen flex flex-col">
+    
+    <!-- Top Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
+          <i data-lucide="git-merge" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+            Prompt Chaining Summarizer
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Multi-Step Sequential Prompt Pipeline Lab</p>
+        </div>
+      </div>
+
+      <!-- Controls Right -->
+      <div class="flex items-center gap-3">
+        <button id="btn-api-settings" class="btn-secondary text-xs flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 transition">
+          <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+          <span>API Key Settings</span>
+        </button>
+        <button id="btn-compare-mode" class="btn-secondary text-xs flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 transition">
+          <i data-lucide="columns" class="w-4 h-4 text-cyan-400"></i>
+          <span>Single vs Multi-Step</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Column: Input Panel & Controls (5 Cols) -->
+      <section class="lg:col-span-5 flex flex-col gap-5">
+        
+        <!-- Input Box Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <label for="input-text" class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+              Input Document / Text
+            </label>
+            <span id="char-count" class="text-xs font-mono text-slate-500">0 words</span>
+          </div>
+
+          <!-- Preset Selector Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs text-slate-400 flex items-center self-center gap-1 font-medium mr-1">Presets:</span>
+            <button class="preset-btn text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 border border-slate-700 text-slate-300 transition" data-preset="tech">
+              AI Breakthrough
+            </button>
+            <button class="preset-btn text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 border border-slate-700 text-slate-300 transition" data-preset="energy">
+              Clean Energy Report
+            </button>
+            <button class="preset-btn text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 border border-slate-700 text-slate-300 transition" data-preset="space">
+              Space Exploration
+            </button>
+          </div>
+
+          <!-- Textarea -->
+          <textarea id="input-text" rows="10" 
+            placeholder="Paste raw text, news article, or document here..."
+            class="w-full bg-slate-950/70 border border-slate-800 focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 rounded-xl p-4 text-sm text-slate-200 placeholder-slate-600 outline-none resize-none font-sans leading-relaxed transition"></textarea>
+
+          <!-- Action Button -->
+          <div class="flex items-center gap-3">
+            <button id="btn-generate" class="flex-1 py-3 px-5 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50">
+              <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+              <span>Generate Summary (Run Chain)</span>
+            </button>
+            <button id="btn-reset" class="py-3 px-4 rounded-xl font-medium text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pipeline Specs Card -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+            <i data-lucide="workflow" class="w-4 h-4"></i>
+            Pipeline Architecture
+          </h3>
+          <div class="text-xs text-slate-400 space-y-2 leading-relaxed">
+            <div class="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+              <div><strong class="text-slate-200">Extract Key Points:</strong> Identifies raw facts, claims, & keywords without summarizing.</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+              <div><strong class="text-slate-200">Organize Information:</strong> Groups points logically and strips redundant noise.</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+              <div><strong class="text-slate-200">Generate Summary:</strong> Builds clear draft in simple English maintaining core context.</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">4</span>
+              <div><strong class="text-slate-200">Improve & Refine:</strong> Audits for missing facts & clarity to produce final summary.</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Visual Pipeline & Outputs (7 Cols) -->
+      <section class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- Visual Progress Workflow Bar -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-400 mb-3 px-1">
+            <span>PIPELINE WORKFLOW</span>
+            <span id="pipeline-status-text" class="text-indigo-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-slate-600"></span> Ready
+            </span>
+          </div>
+
+          <!-- Step Indicators Bar -->
+          <div class="grid grid-cols-5 gap-1.5 items-center relative">
+            
+            <!-- Workflow Nodes -->
+            <div id="wf-input" class="wf-step-node active">
+              <i data-lucide="file-input" class="w-4 h-4"></i>
+              <span class="truncate">Input Text</span>
+            </div>
+
+            <div class="h-0.5 bg-slate-800 relative flex items-center justify-center">
+              <i data-lucide="chevron-right" class="w-3 h-3 text-slate-600"></i>
+            </div>
+
+            <div id="wf-step1" class="wf-step-node">
+              <i data-lucide="list-tree" class="w-4 h-4"></i>
+              <span class="truncate">1. Key Points</span>
+            </div>
+
+            <div class="h-0.5 bg-slate-800 relative flex items-center justify-center">
+              <i data-lucide="chevron-right" class="w-3 h-3 text-slate-600"></i>
+            </div>
+
+            <div id="wf-step2" class="wf-step-node">
+              <i data-lucide="boxes" class="w-4 h-4"></i>
+              <span class="truncate">2. Organize</span>
+            </div>
+
+            <!-- Row 2 for workflow -->
+            <div id="wf-step3" class="wf-step-node col-span-2">
+              <i data-lucide="file-edit" class="w-4 h-4"></i>
+              <span class="truncate">3. Draft Summary</span>
+            </div>
+
+            <div class="h-0.5 bg-slate-800 relative flex items-center justify-center">
+              <i data-lucide="chevron-right" class="w-3 h-3 text-slate-600"></i>
+            </div>
+
+            <div id="wf-step4" class="wf-step-node col-span-2 highlight-final">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span class="truncate">4. Final Summary</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Dynamic Output Stream Container -->
+        <div id="pipeline-steps-container" class="flex flex-col gap-4">
+
+          <!-- Step 1 Card -->
+          <div id="card-step-1" class="step-card group border-slate-800/80 bg-slate-900/60 opacity-60">
+            <div class="step-card-header">
+              <div class="flex items-center gap-3">
+                <div class="step-badge bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">1</div>
+                <div>
+                  <h3 class="text-sm font-bold text-slate-200">Step 1 – Extract Key Points</h3>
+                  <p class="text-[11px] text-slate-400">Identify core facts, key claims, and keywords from input text</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn-view-prompt text-xs text-indigo-400 hover:underline flex items-center gap-1 font-mono" data-step="1">
+                  <i data-lucide="code-2" class="w-3.5 h-3.5"></i> Prompt
+                </button>
+                <span class="step-status-badge text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Waiting</span>
+              </div>
+            </div>
+            <div class="step-card-body hidden">
+              <div class="output-content font-sans text-xs text-slate-300 whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- Step 2 Card -->
+          <div id="card-step-2" class="step-card group border-slate-800/80 bg-slate-900/60 opacity-60">
+            <div class="step-card-header">
+              <div class="flex items-center gap-3">
+                <div class="step-badge bg-purple-500/20 text-purple-400 border border-purple-500/30">2</div>
+                <div>
+                  <h3 class="text-sm font-bold text-slate-200">Step 2 – Organize Information</h3>
+                  <p class="text-[11px] text-slate-400">Group points into logical sections & purge redundancies</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn-view-prompt text-xs text-purple-400 hover:underline flex items-center gap-1 font-mono" data-step="2">
+                  <i data-lucide="code-2" class="w-3.5 h-3.5"></i> Prompt
+                </button>
+                <span class="step-status-badge text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Waiting</span>
+              </div>
+            </div>
+            <div class="step-card-body hidden">
+              <div class="output-content font-sans text-xs text-slate-300 whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- Step 3 Card -->
+          <div id="card-step-3" class="step-card group border-slate-800/80 bg-slate-900/60 opacity-60">
+            <div class="step-card-header">
+              <div class="flex items-center gap-3">
+                <div class="step-badge bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">3</div>
+                <div>
+                  <h3 class="text-sm font-bold text-slate-200">Step 3 – Generate Summary</h3>
+                  <p class="text-[11px] text-slate-400">Draft concise summary in simple English preserving context</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn-view-prompt text-xs text-cyan-400 hover:underline flex items-center gap-1 font-mono" data-step="3">
+                  <i data-lucide="code-2" class="w-3.5 h-3.5"></i> Prompt
+                </button>
+                <span class="step-status-badge text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Waiting</span>
+              </div>
+            </div>
+            <div class="step-card-body hidden">
+              <div class="output-content font-sans text-xs text-slate-300 whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- Step 4 Card (Final Summary) -->
+          <div id="card-step-4" class="step-card border-emerald-500/40 bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-emerald-950/20 opacity-60">
+            <div class="step-card-header">
+              <div class="flex items-center gap-3">
+                <div class="step-badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">4</div>
+                <div>
+                  <h3 class="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                    Step 4 – Improve & Produce Final Summary
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">FINAL</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400">Audited for clarity, correctness, and completeness</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn-view-prompt text-xs text-emerald-400 hover:underline flex items-center gap-1 font-mono" data-step="4">
+                  <i data-lucide="code-2" class="w-3.5 h-3.5"></i> Prompt
+                </button>
+                <button id="btn-copy-final" class="hidden text-xs bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 px-2.5 py-1 rounded border border-emerald-500/40 flex items-center gap-1 transition">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                </button>
+                <span class="step-status-badge text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Waiting</span>
+              </div>
+            </div>
+            <div class="step-card-body hidden">
+              <div class="output-content font-sans text-sm text-emerald-100 font-medium whitespace-pre-wrap leading-relaxed p-4 bg-slate-950/80 rounded-xl border border-emerald-500/30 shadow-inner"></div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Prompt Inspector Modal -->
+  <div id="modal-prompt" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-prompt-title" class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i data-lucide="terminal" class="w-4 h-4 text-indigo-400"></i> Step Prompt Template
+        </h3>
+        <button id="modal-prompt-close" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 mb-2">Exact instruction prompt passed to the model at this step:</p>
+        <pre id="modal-prompt-body" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-indigo-300 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-80"></pre>
+      </div>
+      <div class="flex justify-end">
+        <button id="modal-prompt-close-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-200 font-medium">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Settings Modal -->
+  <div id="modal-api" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i> Model & Execution Engine
+        </h3>
+        <button id="modal-api-close" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 mb-1.5 block">Execution Engine Mode</label>
+          <select id="engine-mode" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none">
+            <option value="simulated">⚡ Built-in Heuristic Engine (Instant & Offline)</option>
+            <option value="gemini">♊ Live Gemini API (Requires API Key)</option>
+            <option value="openai">🤖 Live OpenAI API (Requires API Key)</option>
+          </select>
+        </div>
+
+        <div id="api-key-group" class="hidden">
+          <label class="text-xs font-semibold text-slate-300 mb-1.5 block">API Key</label>
+          <input type="password" id="api-key-input" placeholder="Paste your API key here..."
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none font-mono">
+          <p class="text-[11px] text-slate-500 mt-1">Keys are stored only in your browser memory during execution.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="modal-api-save" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Single vs Multi Step Compare Modal -->
+  <div id="modal-compare" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-5xl w-full p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-hidden">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+            <i data-lucide="columns" class="w-5 h-5 text-cyan-400"></i> Pipeline Architecture Comparison
+          </h3>
+          <p class="text-xs text-slate-400">Single-Shot Prompting vs 4-Step Multi-Prompt Chaining</p>
+        </div>
+        <button id="modal-compare-close" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-1">
+        <!-- Single Shot Box -->
+        <div class="bg-slate-950 border border-rose-500/30 rounded-xl p-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="zap-off" class="w-3.5 h-3.5"></i> Single-Shot Prompting
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono">1 Request</span>
+          </div>
+          <p class="text-xs text-slate-400 italic">"Summarize this text in 3 sentences."</p>
+          <div id="compare-single-output" class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800 leading-relaxed font-sans min-h-[120px]">
+            Run a summary generation first to view comparison!
+          </div>
+          <ul class="text-[11px] text-slate-400 space-y-1">
+            <li class="text-rose-400/90">❌ Higher risk of hallucinating ungrounded details</li>
+            <li class="text-rose-400/90">❌ Often misses core facts in complex documents</li>
+            <li class="text-rose-400/90">❌ No intermediate verification or audit step</li>
+          </ul>
+        </div>
+
+        <!-- Multi Step Box -->
+        <div class="bg-slate-950 border border-emerald-500/40 rounded-xl p-4 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="git-commit" class="w-3.5 h-3.5"></i> 4-Step Prompt Chaining
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">4 Sequential Steps</span>
+          </div>
+          <p class="text-xs text-slate-400 italic">Extract Key Points → Organize → Draft → Refine & Audit</p>
+          <div id="compare-multi-output" class="text-xs text-emerald-200 bg-emerald-950/20 p-3 rounded-lg border border-emerald-500/30 leading-relaxed font-medium min-h-[120px]">
+            Run a summary generation first to view comparison!
+          </div>
+          <ul class="text-[11px] text-slate-400 space-y-1">
+            <li class="text-emerald-400">✅ 100% grounded in verified extracted key points</li>
+            <li class="text-emerald-400">✅ Eliminates redundancy systematically in Step 2</li>
+            <li class="text-emerald-400">✅ Audited for missing facts and clarity in Step 4</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
